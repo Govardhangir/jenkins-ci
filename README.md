@@ -149,5 +149,5 @@ Before running the CI pipeline, ensure:
 
 ---
 
-## 📂 Project Directory Structure
+
 
