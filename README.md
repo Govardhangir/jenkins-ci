@@ -1,153 +1,115 @@
-## 🧩 Continuous Integration Pipeline using Jenkins, SonarQube & Nexus Repository
+# Continuous Deployment Pipeline using Jenkins, Docker, Amazon ECR & Amazon ECS
 
-## 📘 Overview
+## Overview
 
-This project demonstrates a **Continuous Integration (CI)** workflow using **Jenkins**, **SonarQube**, and **Nexus Repository**.  
-It automates the process of **building, testing, analyzing, and storing artifacts** for a software project.
-
----
-
-## 🚀 CI Pipeline Flow
-
-### 1. Code Commit
-- Developers commit code changes to the **GitHub repository**.
-- Each commit triggers an **automated Jenkins build** via a webhook or polling.
-
-### 2. Jenkins Pipeline Execution
-Jenkins performs several stages as part of the CI pipeline:
-
-| Stage | Description |
-|--------|-------------|
-| **Fetch** | Jenkins fetches the latest code from GitHub. |
-| **Build** | The code is compiled or built using tools like Maven or Gradle. |
-| **Unit Testing** | Runs automated test cases to validate the build. |
-| **Code Analysis** | The built code is sent to **SonarQube** for static code analysis. |
-| **Quality Gates** | SonarQube checks code quality against predefined metrics (bugs, vulnerabilities, coverage). |
-| **Upload Artifact** | If the build passes all tests and quality gates, the artifact (JAR/WAR) is uploaded to **Nexus Repository**. |
+This repository demonstrates a **Continuous Deployment (CD) pipeline** for automating the delivery of containerized applications to AWS. After the **Continuous Integration (CI)** process, the pipeline moves into **CD**, where the application is packaged, stored, and deployed automatically to the cloud.
 
 ---
 
-## 🧠 Tools Used
+## 🚀 CD Pipeline Flow
 
-| Tool | Purpose |
-|------|----------|
-| **GitHub** | Source code management and version control |
-| **Jenkins** | Automation server for building and integrating code |
-| **SonarQube** | Code quality and static analysis |
-| **Nexus Repository** | Artifact repository for storing build outputs (e.g., JAR/WAR files) |
-| **Email Notification** | Sends build and test results to the team |
+1. **Docker Build & Packaging**
 
----
+    - After code passes quality checks:
+        - A `Dockerfile` is used to define the container image.
+        - Docker builds the image.
+        - Image is tagged (semantic versioning or commit ID).
+    - **Why this matters:**
+        - Ensures consistent runtime across all environments.
+        - Removes OS and configuration dependencies for apps.
 
-## 🧱 Nexus Artifact Workflow
+2. **Push Docker Image to Amazon ECR**
 
-Below image represents the **artifact management workflow** in Nexus Repository:
+    - The Docker image is pushed to Amazon Elastic Container Registry (ECR).
+    - **Key Actions:**
+        - Authenticate Jenkins with ECR.
+        - Tag the Docker image.
+        - Push to the ECR repository.
+    - **Benefits:**
+        - Highly secure storage for images.
+        - Version-controlled repository.
+        - Seamless integration with ECS.
 
-📸 *Add your artifact workflow image here:*
+3. **Deploy to Amazon ECS**
 
-![Artifact Workflow](./images/artifact-workflow.png)
-
-**Example Repository Structure:**
-nexus-repository/
-│
-├── releases/
-│ ├── app-1.0.0.jar
-│ ├── app-1.0.1.jar
-│
-└── snapshots/
-├── app-1.0.2-SNAPSHOT.jar
-
-
----
-
-## 🧩 SonarQube Quality Metrics
-
-The following key metrics are evaluated in **SonarQube**:
-
-- 🧩 Code Smells  
-- 🐞 Bugs  
-- 🔒 Vulnerabilities  
-- 🧪 Test Coverage  
-- 🔁 Duplicated Lines  
-
-If thresholds fail, Jenkins halts the pipeline to **maintain high-quality code**.
+    - Jenkins triggers an ECS deployment when the image is in ECR.
+    - ECS pulls the latest image from ECR.
+    - The ECS service updates its task definition.
+    - ECS performs a rolling update with zero downtime.
+    - **ECS Advantages:**
+        - Auto-healing of unhealthy tasks.
+        - Horizontal scaling.
+        - High availability across Availability Zones.
 
 ---
 
-## 📢 Notifications
+## 🧠 Tools Used (CD Phase)
 
-Jenkins sends notifications at critical points such as:
-- Build start
-- Build success or failure
-- Quality Gate pass or fail
-
-Notifications can be sent via:
-- 📧 **Email**
-- 💬 **Slack**
+| Tool         | Purpose                              |
+|--------------|--------------------------------------|
+| Docker       | Containerizes the application        |
+| Amazon ECR   | Secure storage for Docker images     |
+| Amazon ECS   | Runs the application as containers   |
+| Jenkins      | Automates the CI/CD workflow         |
 
 ---
 
-## 🖼️ CI Architecture Diagram
+## 🧱 Deployment Workflow
 
-📸 *Add your CI Pipeline/Architecture Diagram here:*
+A high-level breakdown of the end-to-end flow:
 
-![CI Pipeline Architecture](./images/ci-pipeline-architecture.png)
-
-This diagram represents the **CI process from code commit to artifact storage in Nexus Repository**.
-
----
-
-## 🧾 Sample Jenkins Pipeline Output
-
-Below are some screenshots from the working Jenkins pipeline:
-
-### ✅ Jenkins Build Success
-![Jenkins Build Success](./outputs/jenkins-build-success.png)
-
-### 🧪 SonarQube Quality Gate Pass
-![SonarQube Quality Gate](./outputs/sonarqube-quality-gate.png)
-
-### 📦 Nexus Artifact Upload
-![Nexus Artifact Upload](./outputs/nexus-artifact-upload.png)
+1. Developer pushes code to GitHub.
+2. Jenkins fetches the source code.
+3. **CI**: Build → Test → Code Analysis → Artifact Upload.
+4. **CD:**
+    - Build Docker image.
+    - Push image to Amazon ECR.
+    - Update ECS to run the new version.
 
 ---
 
-## ✅ Benefits
+## 🖼️ CD Architecture Diagram
 
-- ⚙️ Automated build and testing workflow  
-- 🧩 Consistent code quality enforcement  
-- 📦 Centralized and versioned artifact management  
-- 🐞 Early detection of bugs and vulnerabilities  
-- 🤝 Improved team collaboration through notifications  
+Visualize the flow: **GitHub → Jenkins → Docker → ECR → ECS**  
+_Refer to the architecture diagram in this repository for details._
+
+---
+
+## ✨ Key Benefits
+
+- 🚀 **Fast & automated deployments**
+- 🔁 **Zero downtime** via rolling updates
+- 📦 **Consistent & portable containers**
+- 🔒 **Secure image management** with ECR
+- 📈 **Scalable deployments** via ECS services
 
 ---
 
 ## 🧰 Prerequisites
 
-Before running the CI pipeline, ensure:
-- ✅ Jenkins is installed and configured  
-- ✅ SonarQube server is up and integrated with Jenkins  
-- ✅ Nexus Repository is accessible and credentials are configured  
-- ✅ Maven is installed and configured in Jenkins  
+Ensure the following are configured before running the CD workflow:
+
+- AWS CLI with necessary IAM permissions
+- Docker installed on Jenkins agent(s)
+- Amazon ECR repository set up
+- ECS Cluster and ECS Service configured
+- Jenkins credentials for AWS access
 
 ---
 
 ## 💡 Future Enhancements
 
-- 🐳 Integrate **Docker** for containerized builds  
-- ☸️ Add **Kubernetes** for deployment automation  
-- 🔔 Include **Slack notifications** for real-time build updates  
+- Automate infrastructure using **Terraform**
+- Migrate ECS tasks to **AWS Fargate** (serverless containers)
+- Implement **Blue/Green Deployments** (CodeDeploy)
+- Add **Prometheus & Grafana** for advanced monitoring
 
 ---
 
 ## 👨‍💻 Author
 
 **Giri**  
-💼 *DevOps Enthusiast | CI/CD Automation Learner*  
-📍 *India*  
-📘 *Project: Continuous Integration Pipeline with Jenkins, SonarQube & Nexus*  
+DevOps Engineer | CI/CD | AWS Cloud  
+📍 India  
 
----
-
-
-
+_Project: CI/CD with Jenkins, SonarQube, Docker, ECR & ECS_
